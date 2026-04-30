@@ -102,7 +102,7 @@
     "section": "Verilog 문법과 합성",
     "kind": "개념",
     "title": "합성 불가능한 구문 고르기",
-    "prompt": "(a) initial begin ... end\n(b) #10 a = b;\n(c) always_ff @(posedge clk)\n(d) force a = 1'b1; release a;\n(e) assign y = a & b;\n(f) $display(\"hello\")",
+    "prompt": "다음 중 합성 불가능한(non-synthesizable) 구문을 모두 고르시오.\n\n(a) initial begin ... end\n(b) #10 a = b;\n(c) always_ff @(posedge clk)\n(d) force a = 1'b1; release a;\n(e) assign y = a & b;\n(f) $display(\"hello\")",
     "answer": "**정답: (a), (b), (d), (f)** ✅\n\n- (a) `initial`: 일반 RTL 합성 기준 비권장/불가\n- (b) `#10`: 시뮬레이션 delay\n- (d) `force/release`: 시뮬레이션 강제 구동\n- (f) `$display`: 시뮬레이션 출력\n\n**합성 가능:** (c) `always_ff`, (e) `assign`"
   },
   {
@@ -127,7 +127,7 @@
     "section": "타이밍",
     "kind": "코드",
     "title": "Clock Enable D Flip-flop dff_clken",
-    "prompt": "입력: clk, rst_n(sync), clk_en, d\n출력: q\n조건: clk_en이 1인 클럭에만 데이터 캡처",
+    "prompt": "Clock Enable이 적용된 D Flip-flop dff_clken을 작성하시오. (gating cell 시뮬레이션 용)\n\n입력: clk, rst_n(sync), clk_en, d\n출력: q\n조건: clk_en이 1인 클럭에만 데이터 캡처",
     "answer": "**핵심: clock을 gate하지 않고 enable로 캡처 제어** ✅\n\n- `iClkEn=1`인 clock에서만 `iD` 캡처\n- `iClkEn=0`이면 `oQ` 유지\n- reset 시 `oQ=0`\n\n실제 RTL에서는 clock 직접 gating보다 enable 조건 사용이 기본임.",
     "code": "`timescale 1ns / 1ps\n\nmodule dff_clken (\n  input  wire iClk,\n  input  wire iRst,\n  input  wire iClkEn,\n  input  wire iD,\n  output reg  oQ\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oQ <= 1'b0;\n    end\n    else if (iClkEn) begin\n      oQ <= iD;\n    end\n  end\n\nendmodule"
   },
