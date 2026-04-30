@@ -1,0 +1,135 @@
+[1.2.1] 4:1 Multiplexer 모듈 mux_4to1 을 작성하시오. 
+작성 조건 
+입력: data_in[3:0] (4-bit), sel[1:0] 
+출력: data_out 
+조합 회로 
+ 
+[1.2.3] 3-to-8 Decoder 모듈 decoder_3to8 을 작성하시오. 
+작성 조건 
+입력: addr[2:0], enable 
+출력: dec_out[7:0] (one-hot, enable=0 이면 모두 0) 
+ 
+[1.2.5] 4-bit Magnitude Comparator compare_4bit 를 작성하시오. 
+작성 조건 
+입력: a[3:0], b[3:0] (unsigned) 
+출력: gt(a>b), eq(a==b), lt(a<b) 
+[1.2.7] 4-bit Ripple Carry Adder rca_4bit 를 위에서 작성한 full_adder 4 개를 
+인스턴스화하여 구성하시오. 
+작성 조건 
+입력: a[3:0], b[3:0], cin 
+출력: sum[3:0], cout 
+[1.2.8] Synchronous Reset 을 가지는 D Flip-flop 모듈 dff_sync_rst 를 작성하시오. 
+작성 조건 
+입력: clk, rst_n(active-low), d 
+출력: q 
+ 
+
+[1.2.9] Asynchronous Reset 을 가지는 D Flip-flop 모듈 dff_async_rst 를 작성하시오. 
+작성 조건 
+입력: clk, rst_n(active-low), d 
+출력: q 
+[1.2.12] 4-bit Synchronous Up Counter counter_4bit 를 작성하시오. 
+작성 조건 
+입력: clk, rst_n(sync, active-low), enable 
+출력: cnt[3:0] 
+enable=0 이면 카운트 정지, enable=1 이면 매 클럭 +1 
+ 
+[2.2.3] 4-bit Up-Down Counter counter_updown_4bit 를 작성하시오. 
+작성 조건 
+입력: clk, rst_n(sync), enable, up_down(1: up, 0: down) 
+출력: cnt[3:0] 
+[2.2.4] Modulo-10 Counter counter_mod10 을 작성하시오. (0~9 반복) 
+작성 조건 
+입력: clk, rst_n(sync), enable 
+출력: cnt[3:0], tick (cnt 가 9 에서 0 으로 넘어가는 클럭에 1 cycle 동안 1) 
+[2.2.6] 8-bit SIPO (Serial-In Parallel-Out) Shift Register shift_sipo_8bit 를 작성하시오. 
+작성 조건 
+입력: clk, rst_n(sync), serial_in 
+출력: parallel_out[7:0] 
+직렬로 들어온 8 비트가 차례로 LSB → MSB 방향으로 채워짐 
+
+[3.1.1] Blocking 대입(=)과 Non-blocking 대입(<=)의 가장 본질적인 차이를 한 문장으로 
+설명하시오. 
+[3.1.5] 다음 중 합성 불가능한(non-synthesizable) 구문을 모두 고르시오. 
+작성 조건 
+(a) initial begin ... end 
+(b) #10 a = b; 
+(c) always_ff @(posedge clk) 
+(d) force a = 1'b1; release a; 
+(e) assign y = a & b; 
+(f) $display("hello") 
+ 
+[3.1.4] Race condition 이 발생하는 가장 대표적인 코드 패턴을 한 가지 예시 코드로 
+작성하시오. (5 줄 이내) 
+[5.1.1] Setup time 과 Hold time 을 각각 정의하시오. (clock edge 기준으로 데이터가 
+안정해야 하는 시간 관점) 
+[5.2.7] Clock Enable 이 적용된 D Flip-flop dff_clken 을 작성하시오. (gating cell 
+시뮬레이션 용) 
+작성 조건 
+입력: clk, rst_n(sync), clk_en, d 
+출력: q 
+clk_en 이 1 인 클럭에만 데이터 캡처 
+ 
+
+[6.1.1] Synchronous Reset 의 장점 두 가지와 단점 두 가지를 답하시오. 
+[6.1.2] Asynchronous Reset 의 장점 두 가지와 단점 두 가지를 답하시오. 
+[7.1.1] 메타스터빌리티(Metastability)가 발생하는 원리를 setup/hold 타임 위반과 
+연결하여 설명하시오. 
+[7.1.4] 2-flop Synchronizer 의 두 Flip-flop 은 어느 클럭 도메인에 속해야 하는가? 
+송신측인가, 수신측인가? 
+[7.1.7] 다음 중 CDC 가 발생하는 시나리오를 모두 고르시오. 
+작성 조건 
+(a) 100MHz clock domain 의 신호가 200MHz clock domain 의 FF 에 입력됨 
+(b) 같은 100MHz clock 의 다른 PLL 출력으로 동작하는 두 도메인 간 신호 전달 
+(c) 같은 클럭 소스에서 분배된 두 도메인 간 신호 전달 (skew 무시 가능) 
+(d) 100MHz clock domain 의 신호가 100MHz 지만 위상이 다른 다른 clock domain 으로 전달 
+ 
+[7.2.1] 1-bit 신호용 2-flop Synchronizer sync_2ff 를 작성하시오. 
+작성 조건 
+입력: clk_dst (수신측 클럭), rst_n(sync), sig_in (송신측 도메인 신호, 비동기) 
+출력: sig_out (수신측 도메인의 동기화된 신호) 
+[7.2.3] Edge Detector 를 결합한 Synchronizer sync_edge_detect 를 작성하시오. (rising 
+edge 감지) 
+작성 조건 
+입력: clk_dst, rst_n(sync), sig_in (asynchronous) 
+출력: pulse_out (sig_in 의 rising edge 가 감지되면 1 cycle 동안 1) 
+
+[8.2.7] Async FIFO 모듈 async_fifo 를 작성하시오. (구조 골격) 
+작성 조건 
+파라미터: DATA_WIDTH (default 8), ADDR_WIDTH (default 4 → depth=16) 
+입력: clk_w, rst_n_w, wr_en, wr_data[DATA_WIDTH-1:0] 
+입력: clk_r, rst_n_r, rd_en 
+출력: rd_data[DATA_WIDTH-1:0], full, empty 
+내부: dual-port memory + write pointer (binary, gray) + read pointer (binary, gray) + 각각의 
+도메인으로 동기화 + full/empty 판단 
+ 
+[11.1.1] Moore FSM 과 Mealy FSM 의 가장 큰 차이를 설명하시오. (출력 결정 방식 관점) 
+[11.1.2] Moore 와 Mealy 각각의 장단점을 설명하시오. 어느 쪽이 latency 가 짧고, 어느 
+쪽이 glitch 에 더 강한가? 
+[11.2.1] 3-state Moore FSM fsm_moore_3state 를 1-process 스타일로 작성하시오. 
+작성 조건 
+상태: IDLE → READY → DONE → IDLE (...) 
+입력: clk, rst_n(sync), start, done_in 
+출력: state[1:0], busy, complete 
+IDLE: busy=0, complete=0 (start=1 시 READY 로) 
+READY: busy=1, complete=0 (done_in=1 시 DONE 으로) 
+DONE: busy=0, complete=1 (다음 클럭에 IDLE 로) 
+ 
+
+[11.2.2] 위 FSM 을 3-process 스타일(state register / next state logic / output logic)로 
+다시 작성하시오. fsm_moore_3state_3p 
+[14.1.3] Multi-cycle CPU 와 Single-cycle CPU 의 차이를 답하시오. 어떤 명령어가 
+multi-cycle 에서 더 많은 cycle 을 사용하는가? 
+[16.1.1] APB 의 주요 신호 8 가지(PSEL, PENABLE, PWRITE, PADDR, PWDATA, 
+PRDATA, PREADY, PSLVERR)의 역할을 각각 한 줄로 답하시오. 
+[16.1.3] APB Slave 가 wait state 를 만들고 싶을 때 사용하는 신호는 무엇이며, 어떻게 
+동작하는가? 
+[17.1.1] AXI4 의 5 개 채널(AW, W, B, AR, R)의 이름과 각각이 운반하는 정보를 답하시오. 
+[17.1.2] AXI4 의 모든 채널이 공통으로 사용하는 핸드셰이크 신호 두 개는 무엇인가? 
+데이터 전송이 일어나는 조건은? 
+[18.1.1] 메모리맵(Memory Map)의 정의를 설명하시오. SoC 설계에서 왜 필요한가? 
+[18.1.2] Address Decoding 회로의 기본 동작 원리를 설명하시오. (입력 주소 → slave 
+select) 
+[18.1.3] Base Address 와 Offset 의 의미를 설명하시오. 한 slave 내부의 register 는 
+어떻게 구분되는가? 
+ 
