@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/verilog.min.js"></script>
+  <title>RTL 문제 풀이 노트</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --panel-soft: #fbfcfd;
+      --ink: #191f28;
+      --muted: #6b7684;
+      --subtle: #8b95a1;
+      --line: #e5e8eb;
+      --accent: #3182f6;
+      --accent-dark: #1b64da;
+      --accent-soft: #e8f3ff;
+      --code-bg: #111827;
+      --code-head: #0f172a;
+      --code-line: #273444;
+      --warn-bg: #f9fafb;
+      --warn-line: #e5e8eb;
+      --shadow: 0 8px 24px rgba(25, 31, 40, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(18px);
+    }
+
+    .topbar {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 22px 24px 16px;
+      display: grid;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.15;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input,
+    select,
+    button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    input,
+    select {
+      padding: 0 12px;
+    }
+
+    input:focus,
+    select:focus,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 3px solid rgba(49, 130, 246, 0.18);
+      border-color: var(--accent);
+    }
+
+    button {
+      padding: 0 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      background: #f3f6f9;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--accent-dark);
+    }
+
+    .progress {
+      height: 6px;
+      border-radius: 999px;
+      background: #eef1f4;
+      overflow: hidden;
+    }
+
+    .progress > span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      transition: width 180ms ease;
+    }
+
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 28px 24px 72px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      box-shadow: none;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .notice {
+      border: 1px solid var(--warn-line);
+      border-radius: 8px;
+      background: var(--warn-bg);
+      padding: 14px 16px;
+      margin-bottom: 22px;
+      color: #4e5968;
+      font-size: 14px;
+    }
+
+    .section-title {
+      margin: 34px 0 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    article {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: none;
+      overflow: hidden;
+    }
+
+    article:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .card-head {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 9px;
+      background: var(--panel-soft);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.35;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+
+    .prompt {
+      margin: 12px 0 0;
+      color: #333d4b;
+      white-space: pre-wrap;
+      font-size: 15px;
+    }
+
+    details {
+      padding: 0;
+    }
+
+    summary {
+      list-style: none;
+      padding: 15px 24px;
+      cursor: pointer;
+      color: var(--accent);
+      font-weight: 800;
+      user-select: none;
+      background: #fff;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: "+";
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    details[open] summary::before {
+      content: "-";
+    }
+
+    .answer {
+      padding: 0 24px 24px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .answer-text {
+      margin-top: 18px;
+      white-space: pre-wrap;
+      color: #333d4b;
+      font-size: 15px;
+    }
+
+    .code-shell {
+      margin: 18px 0 0;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      background: var(--code-bg);
+      box-shadow: 0 16px 32px rgba(25, 31, 40, 0.14);
+      overflow: hidden;
+    }
+
+    .code-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      padding: 0 12px 0 16px;
+      border-bottom: 1px solid #263241;
+      background: var(--code-head);
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .copy-code {
+      min-height: 30px;
+      border-color: #334155;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 0 11px;
+      font-size: 12px;
+    }
+
+    .copy-code:hover {
+      background: #294058;
+    }
+
+    pre.code-pre {
+      max-width: 100%;
+      overflow-x: auto;
+      margin: 0;
+      background: transparent;
+      padding: 12px 0;
+      font-size: 13px;
+      line-height: 1.65;
+      tab-size: 2;
+    }
+
+    code,
+    .code-line {
+      font-family: Consolas, "Liberation Mono", Menlo, monospace;
+    }
+
+    .code-line {
+      display: grid;
+      grid-template-columns: 54px minmax(max-content, 1fr);
+      min-height: 22px;
+      padding-right: 16px;
+    }
+
+    .code-line:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .line-no {
+      border-right: 1px solid var(--code-line);
+      color: #64748b;
+      padding: 0 12px 0 0;
+      text-align: right;
+      user-select: none;
+    }
+
+    .line-code {
+      padding-left: 14px;
+      white-space: pre;
+    }
+
+    .hljs {
+      background: transparent;
+      color: #e5edf5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .load-state {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 22px 24px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .topbar,
+      main {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .toolbar input {
+        grid-column: 1 / -1;
+      }
+
+      .summary,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>RTL 문제 풀이 노트</h1>
+        <p class="subtitle">PDF 문제를 문제/답 형식으로 정리한 연습용 HTML입니다. 답안 코드는 프로젝트 RTL 규칙에 맞춰 `i*`, `o*`, `r*`, `w*` 이름을 우선 사용했습니다.</p>
+      </div>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="문제 번호, 키워드, 모듈명 검색">
+        <select id="sectionFilter" aria-label="섹션 필터"></select>
+        <button id="collapseAll" type="button">접기</button>
+        <button id="expandAll" class="primary" type="button">전체 답 보기</button>
+      </div>
+      <div class="progress" aria-label="답 확인 진도"><span id="progressBar"></span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary" aria-label="요약">
+      <div class="stat"><strong id="totalCount">0</strong><span>전체 문제</span></div>
+      <div class="stat"><strong id="visibleCount">0</strong><span>현재 표시</span></div>
+      <div class="stat"><strong id="openedCount">0</strong><span>답 확인</span></div>
+      <div class="stat"><strong id="codeCount">0</strong><span>코드형 문제</span></div>
+    </section>
+
+    <div class="notice">
+      PDF 원문에 `clk`, `rst_n(active-low)`가 지정된 문제도, 여기서는 사용자가 요청한 RTL 스타일에 맞춰 `iClk`, `iRst(active-high)` 중심으로 답안을 작성했습니다. 면접/시험에서 원문 포트명을 그대로 요구하면 이름과 리셋 극성만 맞춰 바꾸면 됩니다.
+    </div>
+
+    <div id="quiz"></div>
+  </main>
+
+  <script>
+    let questions = [];
+    let sections = [];
+    const DATA_URL = "rtl_quiz_data.json";
+
+
+    const quizEl = document.getElementById("quiz");
+    const searchEl = document.getElementById("search");
+    const sectionFilterEl = document.getElementById("sectionFilter");
+    const totalCountEl = document.getElementById("totalCount");
+    const visibleCountEl = document.getElementById("visibleCount");
+    const openedCountEl = document.getElementById("openedCount");
+    const codeCountEl = document.getElementById("codeCount");
+    const progressBarEl = document.getElementById("progressBar");
+
+    const opened = new Set(JSON.parse(localStorage.getItem("rtlQuizOpened") || "[]"));
+
+    function saveOpened() {
+      localStorage.setItem("rtlQuizOpened", JSON.stringify([...opened]));
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function highlightLine(line) {
+      if (window.hljs) {
+        return hljs.highlight(line || " ", {
+          language: "verilog",
+          ignoreIllegals: true
+        }).value;
+      }
+      return escapeHtml(line || " ");
+    }
+
+    function formatCode(rawCode) {
+      return rawCode.split("\n").map((line, index) => {
+        return `<span class="code-line"><span class="line-no">${index + 1}</span><span class="line-code">${highlightLine(line)}</span></span>`;
+      }).join("");
+    }
+
+    function makeCodeBlock(rawCode) {
+      const cleanCode = rawCode.replace(/\\`/g, "`");
+      const shell = document.createElement("div");
+      shell.className = "code-shell";
+
+      const head = document.createElement("div");
+      head.className = "code-head";
+
+      const label = document.createElement("span");
+      label.textContent = "Verilog";
+
+      const copyButton = document.createElement("button");
+      copyButton.type = "button";
+      copyButton.className = "copy-code";
+      copyButton.textContent = "복사";
+      copyButton.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(cleanCode);
+          copyButton.textContent = "복사됨";
+          setTimeout(() => {
+            copyButton.textContent = "복사";
+          }, 1200);
+        }
+        catch (error) {
+          copyButton.textContent = "실패";
+          setTimeout(() => {
+            copyButton.textContent = "복사";
+          }, 1200);
+        }
+      });
+
+      const pre = document.createElement("pre");
+      pre.className = "code-pre";
+
+      const code = document.createElement("code");
+      code.className = "hljs language-verilog";
+      code.innerHTML = formatCode(cleanCode);
+
+      head.append(label, copyButton);
+      pre.appendChild(code);
+      shell.append(head, pre);
+      return shell;
+    }
+
+    function buildFilters() {
+      sectionFilterEl.innerHTML = "";
+      const all = document.createElement("option");
+      all.value = "all";
+      all.textContent = "전체 섹션";
+      sectionFilterEl.appendChild(all);
+      sections.forEach((section) => {
+        const option = document.createElement("option");
+        option.value = section;
+        option.textContent = section;
+        sectionFilterEl.appendChild(option);
+      });
+    }
+
+    async function loadQuestions() {
+      quizEl.innerHTML = '<div class="load-state">문제 데이터를 불러오는 중입니다.</div>';
+      const response = await fetch(DATA_URL, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`${DATA_URL} 로드 실패: ${response.status}`);
+      }
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error(`${DATA_URL} 형식이 배열이 아닙니다.`);
+      }
+      questions = data;
+      sections = [...new Set(questions.map((q) => q.section))];
+    }
+
+    function makeQuestionCard(q) {
+      const article = document.createElement("article");
+      article.dataset.section = q.section;
+      article.dataset.search = `${q.id} ${q.section} ${q.kind} ${q.title} ${q.prompt} ${q.answer} ${q.code || ""}`.toLowerCase();
+
+      const head = document.createElement("div");
+      head.className = "card-head";
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      [q.id, q.section, q.kind].forEach((value) => {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = value;
+        meta.appendChild(tag);
+      });
+
+      const title = document.createElement("h2");
+      title.textContent = q.title;
+
+      const prompt = document.createElement("p");
+      prompt.className = "prompt";
+      prompt.textContent = q.prompt;
+
+      head.append(meta, title, prompt);
+
+      const details = document.createElement("details");
+      details.open = opened.has(q.id);
+      details.addEventListener("toggle", () => {
+        if (details.open) {
+          opened.add(q.id);
+        }
+        else {
+          opened.delete(q.id);
+        }
+        saveOpened();
+        updateStats();
+      });
+
+      const summary = document.createElement("summary");
+      summary.textContent = "답 보기";
+
+      const answer = document.createElement("div");
+      answer.className = "answer";
+
+      const answerText = document.createElement("div");
+      answerText.className = "answer-text";
+      answerText.textContent = q.answer;
+      answer.appendChild(answerText);
+
+      if (q.code) {
+        answer.appendChild(makeCodeBlock(q.code));
+      }
+
+      details.append(summary, answer);
+      article.append(head, details);
+      return article;
+    }
+
+    function render() {
+      quizEl.innerHTML = "";
+      sections.forEach((section) => {
+        const sectionTitle = document.createElement("h2");
+        sectionTitle.className = "section-title";
+        sectionTitle.dataset.sectionTitle = section;
+        sectionTitle.textContent = section;
+
+        const grid = document.createElement("section");
+        grid.className = "grid";
+        grid.dataset.sectionGrid = section;
+
+        questions
+          .filter((q) => q.section === section)
+          .forEach((q) => grid.appendChild(makeQuestionCard(q)));
+
+        quizEl.append(sectionTitle, grid);
+      });
+      updateStats();
+    }
+
+    function applyFilter() {
+      const keyword = searchEl.value.trim().toLowerCase();
+      const section = sectionFilterEl.value;
+      const cards = [...document.querySelectorAll("article")];
+      let visible = 0;
+
+      cards.forEach((card) => {
+        const sectionMatch = section === "all" || card.dataset.section === section;
+        const searchMatch = !keyword || card.dataset.search.includes(keyword);
+        const show = sectionMatch && searchMatch;
+        card.classList.toggle("hidden", !show);
+        if (show) {
+          visible += 1;
+        }
+      });
+
+      sections.forEach((name) => {
+        const grid = document.querySelector(`[data-section-grid="${CSS.escape(name)}"]`);
+        const title = document.querySelector(`[data-section-title="${CSS.escape(name)}"]`);
+        const hasVisible = [...grid.querySelectorAll("article")].some((card) => !card.classList.contains("hidden"));
+        grid.classList.toggle("hidden", !hasVisible);
+        title.classList.toggle("hidden", !hasVisible);
+      });
+
+      visibleCountEl.textContent = visible;
+      updateStats();
+    }
+
+    function updateStats() {
+      const cards = [...document.querySelectorAll("article")];
+      const visibleCards = cards.filter((card) => !card.classList.contains("hidden"));
+      const openVisible = visibleCards.filter((card) => card.querySelector("details").open).length;
+      const pct = visibleCards.length ? Math.round((openVisible / visibleCards.length) * 100) : 0;
+
+      totalCountEl.textContent = questions.length;
+      visibleCountEl.textContent = visibleCards.length;
+      openedCountEl.textContent = openVisible;
+      codeCountEl.textContent = questions.filter((q) => q.kind === "코드").length;
+      progressBarEl.style.width = `${pct}%`;
+    }
+
+    document.getElementById("expandAll").addEventListener("click", () => {
+      document.querySelectorAll("article:not(.hidden) details").forEach((details) => {
+        details.open = true;
+      });
+    });
+
+    document.getElementById("collapseAll").addEventListener("click", () => {
+      document.querySelectorAll("article:not(.hidden) details").forEach((details) => {
+        details.open = false;
+      });
+    });
+
+    searchEl.addEventListener("input", applyFilter);
+    sectionFilterEl.addEventListener("change", applyFilter);
+
+    async function init() {
+      try {
+        await loadQuestions();
+        buildFilters();
+        render();
+      }
+      catch (error) {
+        console.error(error);
+        totalCountEl.textContent = "0";
+        visibleCountEl.textContent = "0";
+        openedCountEl.textContent = "0";
+        codeCountEl.textContent = "0";
+        quizEl.innerHTML = `
+          <div class="load-state">
+            <strong>문제 JSON을 불러오지 못했습니다.</strong><br>
+            같은 폴더의 <code>${DATA_URL}</code> 파일이 있는지 확인하고, 더블클릭 대신
+            <code>python3 -m http.server</code> 같은 로컬 서버로 열어주세요.
+          </div>
+        `;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

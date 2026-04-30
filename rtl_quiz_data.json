@@ -1,0 +1,299 @@
+[
+  {
+    "id": "1.2.1",
+    "section": "조합논리 기본",
+    "kind": "코드",
+    "title": "4:1 Multiplexer 모듈 mux_4to1",
+    "prompt": "입력: data_in[3:0] (4-bit), sel[1:0]\n출력: data_out\n조건: 조합 회로",
+    "answer": "sel 값에 따라 4개 입력 중 1비트를 선택하는 조합논리입니다. 기본값을 먼저 둔 뒤 case 문으로 선택하면 래치 추론을 피하기 쉽습니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule mux_4to1 (\n  input  wire [3:0] iDataIn,\n  input  wire [1:0] iSel,\n  output reg        oDataOut\n);\n\n  always @(*) begin\n    oDataOut = 1'b0;\n    case (iSel)\n      2'd0: oDataOut = iDataIn[0];\n      2'd1: oDataOut = iDataIn[1];\n      2'd2: oDataOut = iDataIn[2];\n      2'd3: oDataOut = iDataIn[3];\n      default: oDataOut = 1'b0;\n    endcase\n  end\n\nendmodule"
+  },
+  {
+    "id": "1.2.3",
+    "section": "조합논리 기본",
+    "kind": "코드",
+    "title": "3-to-8 Decoder 모듈 decoder_3to8",
+    "prompt": "입력: addr[2:0], enable\n출력: dec_out[7:0]\n조건: one-hot, enable=0 이면 모두 0",
+    "answer": "enable이 1일 때만 addr 위치의 비트를 1로 세우면 됩니다. enable이 0이면 기본값 0이 유지됩니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule decoder_3to8 (\n  input  wire [2:0] iAddr,\n  input  wire       iEnable,\n  output reg  [7:0] oDecOut\n);\n\n  always @(*) begin\n    oDecOut = 8'b0000_0000;\n    if (iEnable) begin\n      oDecOut = 8'b0000_0001 << iAddr;\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "1.2.5",
+    "section": "조합논리 기본",
+    "kind": "코드",
+    "title": "4-bit Magnitude Comparator compare_4bit",
+    "prompt": "입력: a[3:0], b[3:0] (unsigned)\n출력: gt(a>b), eq(a==b), lt(a<b)",
+    "answer": "unsigned 비교이므로 Verilog의 관계 연산자를 그대로 쓰면 됩니다. a와 b가 같은 폭의 unsigned wire라면 비교 결과는 1비트입니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule compare_4bit (\n  input  wire [3:0] iA,\n  input  wire [3:0] iB,\n  output wire       oGt,\n  output wire       oEq,\n  output wire       oLt\n);\n\n  assign oGt = (iA > iB);\n  assign oEq = (iA == iB);\n  assign oLt = (iA < iB);\n\nendmodule"
+  },
+  {
+    "id": "1.2.7",
+    "section": "조합논리 기본",
+    "kind": "코드",
+    "title": "4-bit Ripple Carry Adder rca_4bit",
+    "prompt": "위에서 작성한 full_adder 4개를 인스턴스화하여 구성\n입력: a[3:0], b[3:0], cin\n출력: sum[3:0], cout",
+    "answer": "각 full_adder의 carry out을 다음 full_adder의 carry in으로 연결합니다. full_adder는 보통 별도 파일에 두고, 여기서는 이해를 위해 같이 표시했습니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule full_adder (\n  input  wire iA,\n  input  wire iB,\n  input  wire iCin,\n  output wire oSum,\n  output wire oCout\n);\n\n  assign oSum  = iA ^ iB ^ iCin;\n  assign oCout = (iA & iB) | (iA & iCin) | (iB & iCin);\n\nendmodule\nmodule rca_4bit (\n  input  wire [3:0] iA,\n  input  wire [3:0] iB,\n  input  wire       iCin,\n  output wire [3:0] oSum,\n  output wire       oCout\n);\n\n  wire [2:0] wCarry;\n\n  full_adder u_fa0 (.iA(iA[0]), .iB(iB[0]), .iCin(iCin),      .oSum(oSum[0]), .oCout(wCarry[0]));\n  full_adder u_fa1 (.iA(iA[1]), .iB(iB[1]), .iCin(wCarry[0]), .oSum(oSum[1]), .oCout(wCarry[1]));\n  full_adder u_fa2 (.iA(iA[2]), .iB(iB[2]), .iCin(wCarry[1]), .oSum(oSum[2]), .oCout(wCarry[2]));\n  full_adder u_fa3 (.iA(iA[3]), .iB(iB[3]), .iCin(wCarry[2]), .oSum(oSum[3]), .oCout(oCout));\n\nendmodule"
+  },
+  {
+    "id": "1.2.8",
+    "section": "순차논리 기본",
+    "kind": "코드",
+    "title": "Synchronous Reset D Flip-flop dff_sync_rst",
+    "prompt": "입력: clk, rst_n(active-low), d\n출력: q\n조건: synchronous reset",
+    "answer": "동기식 reset은 클럭 엣지에서만 반영됩니다. 프로젝트 스타일에 맞춰 reset은 iRst active-high로 작성했습니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule dff_sync_rst (\n  input  wire iClk,\n  input  wire iRst,\n  input  wire iD,\n  output reg  oQ\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oQ <= 1'b0;\n    end\n    else begin\n      oQ <= iD;\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "1.2.9",
+    "section": "순차논리 기본",
+    "kind": "코드",
+    "title": "Asynchronous Reset D Flip-flop dff_async_rst",
+    "prompt": "입력: clk, rst_n(active-low), d\n출력: q\n조건: asynchronous reset",
+    "answer": "비동기식 reset은 클럭과 무관하게 reset assertion이 즉시 반영됩니다. 프로젝트 규칙의 active-high reset 기준으로 sensitivity list에 posedge iRst를 넣었습니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule dff_async_rst (\n  input  wire iClk,\n  input  wire iRst,\n  input  wire iD,\n  output reg  oQ\n);\n\n  always @(posedge iClk or posedge iRst) begin\n    if (iRst) begin\n      oQ <= 1'b0;\n    end\n    else begin\n      oQ <= iD;\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "1.2.12",
+    "section": "카운터와 시프트",
+    "kind": "코드",
+    "title": "4-bit Synchronous Up Counter counter_4bit",
+    "prompt": "입력: clk, rst_n(sync, active-low), enable\n출력: cnt[3:0]\nenable=0 이면 카운트 정지, enable=1 이면 매 클럭 +1",
+    "answer": "enable이 1일 때만 카운터를 증가시키고, enable이 0이면 기존 값을 유지합니다. 4비트이므로 15 다음은 자연스럽게 0으로 wrap 됩니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule counter_4bit (\n  input  wire       iClk,\n  input  wire       iRst,\n  input  wire       iEnable,\n  output reg  [3:0] oCnt\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oCnt <= 4'd0;\n    end\n    else if (iEnable) begin\n      oCnt <= oCnt + 4'd1;\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "2.2.3",
+    "section": "카운터와 시프트",
+    "kind": "코드",
+    "title": "4-bit Up-Down Counter counter_updown_4bit",
+    "prompt": "입력: clk, rst_n(sync), enable, up_down(1: up, 0: down)\n출력: cnt[3:0]",
+    "answer": "enable이 1일 때 up_down 값에 따라 증가 또는 감소합니다. 4비트 카운터라 overflow/underflow는 자연스럽게 wrap 됩니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule counter_updown_4bit (\n  input  wire       iClk,\n  input  wire       iRst,\n  input  wire       iEnable,\n  input  wire       iUpDown,\n  output reg  [3:0] oCnt\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oCnt <= 4'd0;\n    end\n    else if (iEnable) begin\n      if (iUpDown) begin\n        oCnt <= oCnt + 4'd1;\n      end\n      else begin\n        oCnt <= oCnt - 4'd1;\n      end\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "2.2.4",
+    "section": "카운터와 시프트",
+    "kind": "코드",
+    "title": "Modulo-10 Counter counter_mod10",
+    "prompt": "입력: clk, rst_n(sync), enable\n출력: cnt[3:0], tick\n조건: 0~9 반복, cnt가 9에서 0으로 넘어가는 클럭에 tick 1 cycle",
+    "answer": "tick은 terminal count에서 wrap 되는 클럭에만 1로 만드는 one-cycle pulse입니다. enable이 0이면 cnt와 tick 모두 유지/비활성 상태가 됩니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule counter_mod10 (\n  input  wire       iClk,\n  input  wire       iRst,\n  input  wire       iEnable,\n  output reg  [3:0] oCnt,\n  output reg        oTick\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oCnt  <= 4'd0;\n      oTick <= 1'b0;\n    end\n    else begin\n      oTick <= 1'b0;\n      if (iEnable) begin\n        if (oCnt == 4'd9) begin\n          oCnt  <= 4'd0;\n          oTick <= 1'b1;\n        end\n        else begin\n          oCnt <= oCnt + 4'd1;\n        end\n      end\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "2.2.6",
+    "section": "카운터와 시프트",
+    "kind": "코드",
+    "title": "8-bit SIPO Shift Register shift_sipo_8bit",
+    "prompt": "입력: clk, rst_n(sync), serial_in\n출력: parallel_out[7:0]\n조건: 직렬로 들어온 8비트가 LSB -> MSB 방향으로 채워짐",
+    "answer": "새 serial_in을 bit0에 넣고 기존 값은 MSB 방향으로 한 칸 이동시키면 LSB에서 MSB 방향으로 채워지는 SIPO가 됩니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule shift_sipo_8bit (\n  input  wire       iClk,\n  input  wire       iRst,\n  input  wire       iSerialIn,\n  output reg  [7:0] oParallelOut\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oParallelOut <= 8'd0;\n    end\n    else begin\n      oParallelOut <= {oParallelOut[6:0], iSerialIn};\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "3.1.1",
+    "section": "Verilog 문법과 합성",
+    "kind": "개념",
+    "title": "Blocking 대입과 Non-blocking 대입 차이",
+    "prompt": "Blocking 대입(=)과 Non-blocking 대입(<=)의 가장 본질적인 차이를 한 문장으로 설명",
+    "answer": "Blocking 대입(=)은 procedural block 안에서 즉시 값이 갱신되어 다음 문장이 그 새 값을 보지만, Non-blocking 대입(<=)은 RHS를 먼저 평가하고 같은 time step의 NBA 영역에서 LHS가 동시에 갱신됩니다.\n\n실무 기준으로는 조합논리 always @(*)에는 blocking, 순차논리 always @(posedge iClk ...)에는 non-blocking을 쓰는 것이 기본입니다."
+  },
+  {
+    "id": "3.1.5",
+    "section": "Verilog 문법과 합성",
+    "kind": "개념",
+    "title": "합성 불가능한 구문 고르기",
+    "prompt": "(a) initial begin ... end\n(b) #10 a = b;\n(c) always_ff @(posedge clk)\n(d) force a = 1'b1; release a;\n(e) assign y = a & b;\n(f) $display(\"hello\")",
+    "answer": "일반적인 ASIC/RTL 합성 기준 답: (a), (b), (d), (f)\n\n(a) initial은 테스트벤치 초기화 용도로 보는 것이 안전합니다. 일부 FPGA 메모리 초기화처럼 예외가 있지만 일반 RTL 답안에서는 합성 불가로 분류합니다.\n(b) # delay는 시뮬레이션 시간 지연입니다.\n(d) force/release는 시뮬레이션 강제 구동입니다.\n(f) $display는 시뮬레이션 출력 시스템 태스크입니다.\n\n(c) always_ff와 (e) continuous assign은 합성 가능한 RTL 작성에 사용할 수 있습니다."
+  },
+  {
+    "id": "3.1.4",
+    "section": "Verilog 문법과 합성",
+    "kind": "코드",
+    "title": "Race condition 대표 코드 패턴",
+    "prompt": "Race condition이 발생하는 가장 대표적인 코드 패턴을 5줄 이내 예시 코드로 작성",
+    "answer": "같은 clock edge에서 서로 다른 always block이 blocking 대입으로 값을 교환하면 simulator scheduling 순서에 따라 결과가 달라질 수 있습니다.",
+    "code": "always @(posedge iClk)\n  rA = rB;\n\nalways @(posedge iClk)\n  rB = rA;"
+  },
+  {
+    "id": "5.1.1",
+    "section": "타이밍",
+    "kind": "개념",
+    "title": "Setup time과 Hold time 정의",
+    "prompt": "clock edge 기준으로 데이터가 안정해야 하는 시간 관점에서 정의",
+    "answer": "Setup time은 capture clock edge가 오기 전, 입력 데이터가 미리 안정적으로 유지되어야 하는 최소 시간입니다.\n\nHold time은 capture clock edge가 지난 뒤, 입력 데이터가 계속 안정적으로 유지되어야 하는 최소 시간입니다.\n\n둘 중 하나라도 위반하면 플립플롭이 올바른 0/1로 바로 수렴하지 못하고 metastability 또는 잘못된 캡처가 발생할 수 있습니다."
+  },
+  {
+    "id": "5.2.7",
+    "section": "타이밍",
+    "kind": "코드",
+    "title": "Clock Enable D Flip-flop dff_clken",
+    "prompt": "입력: clk, rst_n(sync), clk_en, d\n출력: q\n조건: clk_en이 1인 클럭에만 데이터 캡처",
+    "answer": "clock을 직접 gating하지 않고 enable 조건 안에서 q를 갱신합니다. enable이 0이면 q는 이전 값을 유지합니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule dff_clken (\n  input  wire iClk,\n  input  wire iRst,\n  input  wire iClkEn,\n  input  wire iD,\n  output reg  oQ\n);\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      oQ <= 1'b0;\n    end\n    else if (iClkEn) begin\n      oQ <= iD;\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "6.1.1",
+    "section": "Reset",
+    "kind": "개념",
+    "title": "Synchronous Reset 장단점",
+    "prompt": "Synchronous Reset의 장점 두 가지와 단점 두 가지",
+    "answer": "장점\n1. reset deassertion이 clock edge에 맞춰 일어나므로 recovery/removal 문제와 비동기 해제 metastability 위험이 작습니다.\n2. reset 경로도 일반 동기 타이밍 분석 대상으로 다루기 쉬워 STA와 검증 흐름이 단순해집니다.\n\n단점\n1. clock이 멈춰 있으면 reset이 반영되지 않습니다.\n2. reset mux가 datapath 앞에 추가되어 timing, area, fanout 부담이 생길 수 있습니다."
+  },
+  {
+    "id": "6.1.2",
+    "section": "Reset",
+    "kind": "개념",
+    "title": "Asynchronous Reset 장단점",
+    "prompt": "Asynchronous Reset의 장점 두 가지와 단점 두 가지",
+    "answer": "장점\n1. clock이 없어도 즉시 회로를 알려진 상태로 초기화할 수 있습니다.\n2. 전원 인가, clock 불안정 구간, 긴급 reset 상황에서 빠르게 assertion할 수 있습니다.\n\n단점\n1. reset deassertion이 clock edge 근처에서 발생하면 recovery/removal 위반으로 metastability가 생길 수 있습니다.\n2. reset tree의 glitch, skew, CDC 성격의 해제 타이밍을 별도로 조심해야 해서 검증과 STA 제약이 까다롭습니다."
+  },
+  {
+    "id": "7.1.1",
+    "section": "CDC",
+    "kind": "개념",
+    "title": "Metastability 발생 원리",
+    "prompt": "setup/hold 타임 위반과 연결하여 설명",
+    "answer": "플립플롭 입력 데이터가 capture clock edge 전후의 setup/hold window 안에서 변하면, 내부 latch가 0 또는 1 중 어느 쪽으로도 충분히 빠르게 결정되지 못할 수 있습니다. 이 중간적이고 불안정한 상태가 metastability입니다.\n\n시간이 지나면 대개 0 또는 1로 수렴하지만, 수렴 시간이 다음 단계의 setup time보다 길면 잘못된 값이나 타이밍 실패가 뒤 회로로 전파될 수 있습니다."
+  },
+  {
+    "id": "7.1.4",
+    "section": "CDC",
+    "kind": "개념",
+    "title": "2-flop Synchronizer의 클럭 도메인",
+    "prompt": "두 Flip-flop은 송신측인가, 수신측인가?",
+    "answer": "두 플립플롭 모두 수신측 clock domain에 속해야 합니다.\n\n목적은 비동기 입력을 수신측 clock으로 샘플링한 뒤, 첫 번째 FF에서 발생할 수 있는 metastability가 두 번째 FF까지 전파되기 전에 수렴할 시간을 주는 것입니다."
+  },
+  {
+    "id": "7.1.7",
+    "section": "CDC",
+    "kind": "개념",
+    "title": "CDC 발생 시나리오 고르기",
+    "prompt": "(a) 100MHz domain 신호가 200MHz domain FF에 입력\n(b) 같은 100MHz의 다른 PLL 출력으로 동작하는 두 도메인 간 신호 전달\n(c) 같은 클럭 소스에서 분배된 두 도메인 간 신호 전달, skew 무시 가능\n(d) 100MHz domain 신호가 100MHz지만 위상이 다른 clock domain으로 전달",
+    "answer": "정답: (a), (b), (d)\n\n(a)는 주파수가 다른 명백한 CDC입니다.\n(b)는 주파수가 같아도 다른 PLL 출력이면 위상 관계와 jitter 관계가 보장되지 않을 수 있어 CDC로 봅니다.\n(c)는 같은 clock source이고 skew를 무시할 수 있다면 일반적인 CDC로 보지 않습니다.\n(d)는 주파수가 같아도 위상이 다르면 capture edge 관계가 달라져 CDC 문제가 생깁니다."
+  },
+  {
+    "id": "7.2.1",
+    "section": "CDC",
+    "kind": "코드",
+    "title": "1-bit 2-flop Synchronizer sync_2ff",
+    "prompt": "입력: clk_dst, rst_n(sync), sig_in(asynchronous)\n출력: sig_out",
+    "answer": "비동기 1-bit 신호를 수신 클럭으로 두 번 샘플링합니다. sig_in이 pulse라면 pulse 폭이 충분히 길거나 toggle/handshake 방식이 필요합니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule sync_2ff (\n  input  wire iClkDst,\n  input  wire iRst,\n  input  wire iSigIn,\n  output wire oSigOut\n);\n\n  reg rSync0;\n  reg rSync1;\n\n  always @(posedge iClkDst) begin\n    if (iRst) begin\n      rSync0 <= 1'b0;\n      rSync1 <= 1'b0;\n    end\n    else begin\n      rSync0 <= iSigIn;\n      rSync1 <= rSync0;\n    end\n  end\n\n  assign oSigOut = rSync1;\n\nendmodule"
+  },
+  {
+    "id": "7.2.3",
+    "section": "CDC",
+    "kind": "코드",
+    "title": "Edge Detector 결합 Synchronizer sync_edge_detect",
+    "prompt": "입력: clk_dst, rst_n(sync), sig_in(asynchronous)\n출력: pulse_out\n조건: sig_in rising edge 감지 시 1 cycle 동안 1",
+    "answer": "2-flop synchronizer로 수신 도메인에 맞춘 뒤, 이전 동기화 값과 현재 동기화 값을 비교해 rising edge pulse를 만듭니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule sync_edge_detect (\n  input  wire iClkDst,\n  input  wire iRst,\n  input  wire iSigIn,\n  output wire oPulseOut\n);\n\n  reg rSync0;\n  reg rSync1;\n  reg rSync1Dly;\n\n  always @(posedge iClkDst) begin\n    if (iRst) begin\n      rSync0   <= 1'b0;\n      rSync1   <= 1'b0;\n      rSync1Dly <= 1'b0;\n    end\n    else begin\n      rSync0   <= iSigIn;\n      rSync1   <= rSync0;\n      rSync1Dly <= rSync1;\n    end\n  end\n\n  assign oPulseOut = rSync1 & ~rSync1Dly;\n\nendmodule"
+  },
+  {
+    "id": "8.2.7",
+    "section": "FIFO",
+    "kind": "코드",
+    "title": "Async FIFO 구조 골격 async_fifo",
+    "prompt": "파라미터: DATA_WIDTH(default 8), ADDR_WIDTH(default 4, depth=16)\n입력: clk_w, rst_n_w, wr_en, wr_data\n입력: clk_r, rst_n_r, rd_en\n출력: rd_data, full, empty\n내부: dual-port memory, binary/gray pointers, pointer sync, full/empty 판단",
+    "answer": "핵심 구조는 write domain과 read domain을 분리하고, 포인터만 gray code로 바꿔 반대 도메인에 2-flop synchronizer로 넘기는 것입니다. full은 write domain에서 다음 write pointer와 동기화된 read gray pointer로 판단하고, empty는 read domain에서 다음 read pointer와 동기화된 write gray pointer로 판단합니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule async_fifo #(\n  parameter DATA_WIDTH = 8,\n  parameter ADDR_WIDTH = 4\n) (\n  input  wire                  iClkW,\n  input  wire                  iRstW,\n  input  wire                  iWrEn,\n  input  wire [DATA_WIDTH-1:0] iWrData,\n  input  wire                  iClkR,\n  input  wire                  iRstR,\n  input  wire                  iRdEn,\n  output reg  [DATA_WIDTH-1:0] oRdData,\n  output wire                  oFull,\n  output wire                  oEmpty\n);\n\n  localparam DEPTH = (1 << ADDR_WIDTH);\n  localparam PTR_WIDTH = ADDR_WIDTH + 1;\n\n  reg [DATA_WIDTH-1:0] rMem [0:DEPTH-1];\n\n  reg [PTR_WIDTH-1:0] rWrBin;\n  reg [PTR_WIDTH-1:0] rWrGray;\n  reg [PTR_WIDTH-1:0] rRdBin;\n  reg [PTR_WIDTH-1:0] rRdGray;\n\n  reg [PTR_WIDTH-1:0] rRdGrayW0;\n  reg [PTR_WIDTH-1:0] rRdGrayW1;\n  reg [PTR_WIDTH-1:0] rWrGrayR0;\n  reg [PTR_WIDTH-1:0] rWrGrayR1;\n\n  wire wWrFire = iWrEn & ~oFull;\n  wire wRdFire = iRdEn & ~oEmpty;\n\n  wire [PTR_WIDTH-1:0] wWrBinNext  = rWrBin + {{(PTR_WIDTH-1){1'b0}}, wWrFire};\n  wire [PTR_WIDTH-1:0] wRdBinNext  = rRdBin + {{(PTR_WIDTH-1){1'b0}}, wRdFire};\n  wire [PTR_WIDTH-1:0] wWrGrayNext = (wWrBinNext >> 1) ^ wWrBinNext;\n  wire [PTR_WIDTH-1:0] wRdGrayNext = (wRdBinNext >> 1) ^ wRdBinNext;\n\n  assign oFull = (wWrGrayNext == {~rRdGrayW1[PTR_WIDTH-1:PTR_WIDTH-2],\n                                  rRdGrayW1[PTR_WIDTH-3:0]});\n  assign oEmpty = (wRdGrayNext == rWrGrayR1);\n\n  always @(posedge iClkW or posedge iRstW) begin\n    if (iRstW) begin\n      rWrBin  <= {PTR_WIDTH{1'b0}};\n      rWrGray <= {PTR_WIDTH{1'b0}};\n    end\n    else begin\n      if (wWrFire) begin\n        rMem[rWrBin[ADDR_WIDTH-1:0]] <= iWrData;\n      end\n      rWrBin  <= wWrBinNext;\n      rWrGray <= wWrGrayNext;\n    end\n  end\n\n  always @(posedge iClkR or posedge iRstR) begin\n    if (iRstR) begin\n      rRdBin  <= {PTR_WIDTH{1'b0}};\n      rRdGray <= {PTR_WIDTH{1'b0}};\n      oRdData <= {DATA_WIDTH{1'b0}};\n    end\n    else begin\n      if (wRdFire) begin\n        oRdData <= rMem[rRdBin[ADDR_WIDTH-1:0]];\n      end\n      rRdBin  <= wRdBinNext;\n      rRdGray <= wRdGrayNext;\n    end\n  end\n\n  always @(posedge iClkW or posedge iRstW) begin\n    if (iRstW) begin\n      rRdGrayW0 <= {PTR_WIDTH{1'b0}};\n      rRdGrayW1 <= {PTR_WIDTH{1'b0}};\n    end\n    else begin\n      rRdGrayW0 <= rRdGray;\n      rRdGrayW1 <= rRdGrayW0;\n    end\n  end\n\n  always @(posedge iClkR or posedge iRstR) begin\n    if (iRstR) begin\n      rWrGrayR0 <= {PTR_WIDTH{1'b0}};\n      rWrGrayR1 <= {PTR_WIDTH{1'b0}};\n    end\n    else begin\n      rWrGrayR0 <= rWrGray;\n      rWrGrayR1 <= rWrGrayR0;\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "11.1.1",
+    "section": "FSM",
+    "kind": "개념",
+    "title": "Moore FSM과 Mealy FSM의 차이",
+    "prompt": "출력 결정 방식 관점에서 가장 큰 차이",
+    "answer": "Moore FSM은 출력이 현재 상태에 의해서만 결정됩니다. Mealy FSM은 출력이 현재 상태와 현재 입력의 조합으로 결정됩니다."
+  },
+  {
+    "id": "11.1.2",
+    "section": "FSM",
+    "kind": "개념",
+    "title": "Moore와 Mealy 장단점",
+    "prompt": "어느 쪽이 latency가 짧고, 어느 쪽이 glitch에 더 강한가?",
+    "answer": "Moore FSM\n장점: 출력이 상태 레지스터에만 의존하므로 안정적이고 glitch에 강합니다.\n단점: 입력 변화가 출력에 반영되려면 상태 전이를 거쳐야 해서 보통 1클럭 latency가 생깁니다.\n\nMealy FSM\n장점: 입력이 출력에 바로 영향을 줄 수 있어 latency가 짧습니다.\n단점: 입력 glitch가 조합 출력으로 전달될 수 있어 출력 안정성 관리가 더 중요합니다.\n\n정리하면 Mealy가 latency가 짧고, Moore가 glitch에 더 강합니다."
+  },
+  {
+    "id": "11.2.1",
+    "section": "FSM",
+    "kind": "코드",
+    "title": "3-state Moore FSM 1-process fsm_moore_3state",
+    "prompt": "상태: IDLE -> READY -> DONE -> IDLE\n입력: clk, rst_n(sync), start, done_in\n출력: state[1:0], busy, complete",
+    "answer": "1-process 스타일은 상태 전이와 등록 출력을 하나의 clocked always block에 모읍니다. Moore 출력은 상태 기준으로 결정되므로 출력도 reset에서 명확히 초기화합니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule fsm_moore_3state (\n  input  wire       iClk,\n  input  wire       iRst,\n  input  wire       iStart,\n  input  wire       iDoneIn,\n  output wire [1:0] oState,\n  output reg        oBusy,\n  output reg        oComplete\n);\n\n  localparam IDLE  = 2'd0;\n  localparam READY = 2'd1;\n  localparam DONE  = 2'd2;\n\n  reg [1:0] rCurState;\n\n  assign oState = rCurState;\n\n  always @(posedge iClk) begin\n    if (iRst) begin\n      rCurState <= IDLE;\n      oBusy     <= 1'b0;\n      oComplete <= 1'b0;\n    end\n    else begin\n      case (rCurState)\n        IDLE: begin\n          oBusy     <= 1'b0;\n          oComplete <= 1'b0;\n          if (iStart) begin\n            rCurState <= READY;\n          end\n        end\n        READY: begin\n          oBusy     <= 1'b1;\n          oComplete <= 1'b0;\n          if (iDoneIn) begin\n            rCurState <= DONE;\n          end\n        end\n        DONE: begin\n          oBusy     <= 1'b0;\n          oComplete <= 1'b1;\n          rCurState <= IDLE;\n        end\n        default: begin\n          rCurState <= IDLE;\n          oBusy     <= 1'b0;\n          oComplete <= 1'b0;\n        end\n      endcase\n    end\n  end\n\nendmodule"
+  },
+  {
+    "id": "11.2.2",
+    "section": "FSM",
+    "kind": "코드",
+    "title": "3-process FSM fsm_moore_3state_3p",
+    "prompt": "위 FSM을 state register / next state logic / output logic 3-process 스타일로 작성",
+    "answer": "3-process 스타일은 상태 레지스터, 다음 상태 조합논리, 출력 조합논리를 분리합니다. 상태가 늘어나도 디버깅과 리뷰가 쉬워지는 형태입니다.",
+    "code": "`timescale 1ns / 1ps\n\nmodule fsm_moore_3state_3p (\n  input  wire       iClk,\n  input  wire       iRst,\n  input  wire       iStart,\n  input  wire       iDoneIn,\n  output wire [1:0] oState,\n  output reg        oBusy,\n  output reg        oComplete\n);\n\n  localparam IDLE  = 2'd0;\n  localparam READY = 2'd1;\n  localparam DONE  = 2'd2;\n\n  reg [1:0] rCurState;\n  reg [1:0] rNxtState;\n\n  assign oState = rCurState;\n\n  always @(posedge iClk or posedge iRst) begin\n    if (iRst) begin\n      rCurState <= IDLE;\n    end\n    else begin\n      rCurState <= rNxtState;\n    end\n  end\n\n  always @(*) begin\n    rNxtState = rCurState;\n    case (rCurState)\n      IDLE: begin\n        if (iStart) begin\n          rNxtState = READY;\n        end\n      end\n      READY: begin\n        if (iDoneIn) begin\n          rNxtState = DONE;\n        end\n      end\n      DONE: begin\n        rNxtState = IDLE;\n      end\n      default: begin\n        rNxtState = IDLE;\n      end\n    endcase\n  end\n\n  always @(*) begin\n    oBusy     = 1'b0;\n    oComplete = 1'b0;\n    case (rCurState)\n      READY: begin\n        oBusy = 1'b1;\n      end\n      DONE: begin\n        oComplete = 1'b1;\n      end\n      default: begin\n        oBusy     = 1'b0;\n        oComplete = 1'b0;\n      end\n    endcase\n  end\n\nendmodule"
+  },
+  {
+    "id": "14.1.3",
+    "section": "CPU",
+    "kind": "개념",
+    "title": "Multi-cycle CPU와 Single-cycle CPU 차이",
+    "prompt": "차이를 답하고, multi-cycle에서 어떤 명령어가 더 많은 cycle을 사용하는지 설명",
+    "answer": "Single-cycle CPU는 모든 명령어를 한 클럭 사이클 안에 fetch, decode, execute, memory, writeback까지 끝냅니다. 따라서 clock period는 가장 오래 걸리는 명령어 기준으로 길어집니다.\n\nMulti-cycle CPU는 한 명령어 실행을 여러 단계로 나누고 여러 클럭에 걸쳐 처리합니다. 명령어마다 필요한 단계 수만 사용하므로 하드웨어 자원을 재사용하기 쉽고 clock period를 짧게 잡을 수 있습니다.\n\nMulti-cycle에서 더 많은 cycle을 쓰는 명령어는 load처럼 instruction fetch, address 계산, data memory read, register writeback이 모두 필요한 명령어입니다. store도 memory 접근이 필요해 R-type보다 길지만, writeback이 있는 load가 대표적으로 가장 깁니다."
+  },
+  {
+    "id": "16.1.1",
+    "section": "APB",
+    "kind": "개념",
+    "title": "APB 주요 신호 8가지 역할",
+    "prompt": "PSEL, PENABLE, PWRITE, PADDR, PWDATA, PRDATA, PREADY, PSLVERR의 역할",
+    "answer": "PSEL: 특정 APB slave가 선택되었음을 나타냅니다.\nPENABLE: Access phase임을 나타내며 PSEL 다음 사이클에 assert됩니다.\nPWRITE: 1이면 write transfer, 0이면 read transfer입니다.\nPADDR: 접근할 slave 내부 주소를 운반합니다.\nPWDATA: write transfer에서 master가 slave로 보내는 write data입니다.\nPRDATA: read transfer에서 slave가 master로 돌려주는 read data입니다.\nPREADY: slave가 transfer를 완료할 준비가 되었음을 나타냅니다.\nPSLVERR: transfer 완료 시 slave error가 있었음을 나타냅니다."
+  },
+  {
+    "id": "16.1.3",
+    "section": "APB",
+    "kind": "개념",
+    "title": "APB wait state 신호",
+    "prompt": "APB Slave가 wait state를 만들고 싶을 때 사용하는 신호와 동작",
+    "answer": "사용 신호는 PREADY입니다.\n\nAccess phase에서 PSEL=1, PENABLE=1인 동안 slave가 아직 완료할 수 없으면 PREADY를 0으로 유지합니다. 이 기간이 wait state입니다. 준비가 되면 PREADY를 1로 올리고, 그 클럭 edge에서 transfer가 완료됩니다."
+  },
+  {
+    "id": "17.1.1",
+    "section": "AXI4",
+    "kind": "개념",
+    "title": "AXI4 5개 채널",
+    "prompt": "AW, W, B, AR, R의 이름과 각각 운반하는 정보",
+    "answer": "AW(Write Address): write 대상 주소와 burst/control 정보를 운반합니다.\nW(Write Data): write data, byte strobe, last 정보를 운반합니다.\nB(Write Response): write transaction의 응답 상태를 운반합니다.\nAR(Read Address): read 대상 주소와 burst/control 정보를 운반합니다.\nR(Read Data): read data, 응답 상태, last 정보를 운반합니다."
+  },
+  {
+    "id": "17.1.2",
+    "section": "AXI4",
+    "kind": "개념",
+    "title": "AXI4 공통 핸드셰이크",
+    "prompt": "모든 채널이 공통으로 사용하는 핸드셰이크 신호 두 개와 데이터 전송 조건",
+    "answer": "공통 핸드셰이크 신호는 VALID와 READY입니다.\n\nsource가 payload가 유효할 때 VALID를 1로 올리고, destination이 받을 수 있을 때 READY를 1로 올립니다. 같은 클럭 edge에서 VALID와 READY가 모두 1이면 해당 채널의 transfer가 성립합니다.\n\n중요 원칙: source는 VALID를 올리기 위해 READY를 기다리면 안 됩니다. 그래야 deadlock을 피할 수 있습니다."
+  },
+  {
+    "id": "18.1.1",
+    "section": "Memory Map",
+    "kind": "개념",
+    "title": "Memory Map 정의와 필요성",
+    "prompt": "메모리맵의 정의와 SoC 설계에서 필요한 이유",
+    "answer": "Memory Map은 CPU나 bus master가 보는 주소 공간을 memory, peripheral, register block 같은 slave 자원에 배정한 표입니다.\n\nSoC에서는 master가 같은 주소 버스로 여러 slave를 접근하므로, 어떤 주소가 어떤 slave와 어떤 register를 의미하는지 정해져 있어야 합니다. 이 정보가 있어야 address decoding, firmware register access, 검증 시나리오, 문서화가 일관되게 맞아떨어집니다."
+  },
+  {
+    "id": "18.1.2",
+    "section": "Memory Map",
+    "kind": "개념",
+    "title": "Address Decoding 기본 원리",
+    "prompt": "입력 주소에서 slave select가 만들어지는 동작 원리",
+    "answer": "Address decoder는 master가 낸 주소를 각 slave의 base address와 address range에 비교합니다. 주소가 특정 slave의 할당 범위 안에 있으면 해당 slave select를 1로 만들고, 나머지는 0으로 둡니다.\n\n예를 들어 0x4000_0000부터 0x4000_0FFF까지가 UART라면, 상위 주소 비트가 그 범위와 일치할 때 UART의 PSEL 또는 chip select를 assert합니다."
+  },
+  {
+    "id": "18.1.3",
+    "section": "Memory Map",
+    "kind": "개념",
+    "title": "Base Address와 Offset",
+    "prompt": "Base Address와 Offset의 의미, 한 slave 내부 register 구분 방식",
+    "answer": "Base Address는 특정 slave 또는 register block이 주소 공간에서 시작하는 기준 주소입니다.\n\nOffset은 그 base address로부터 떨어진 내부 위치입니다. 실제 접근 주소는 보통 base address + offset으로 해석합니다.\n\n한 slave 내부의 여러 register는 하위 주소 비트 또는 offset decode로 구분합니다. 예를 들어 UART base가 0x4000_0000이면 offset 0x00은 DATA, 0x04는 STATUS, 0x08은 CTRL register처럼 매핑할 수 있습니다."
+  }
+]
