@@ -51,6 +51,10 @@
       backdrop-filter: blur(18px);
     }
 
+    body.header-hidden header {
+      display: none;
+    }
+
     .topbar {
       max-width: 1040px;
       margin: 0 auto;
@@ -75,6 +79,48 @@
       align-items: center;
       justify-content: space-between;
       gap: 20px;
+    }
+
+    .title-main {
+      min-width: 0;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .close-header {
+      display: inline-grid;
+      place-items: center;
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      min-height: 44px;
+      border-radius: 50%;
+      padding: 0;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .show-header {
+      display: none;
+      position: sticky;
+      top: 12px;
+      z-index: 12;
+      width: fit-content;
+      margin: 12px 0 0 12px;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(49, 130, 246, 0.2);
+    }
+
+    body.header-hidden .show-header {
+      display: inline-flex;
+      align-items: center;
     }
 
     h1 {
@@ -604,6 +650,15 @@
         gap: 14px;
       }
 
+      .header-controls {
+        width: 100%;
+        align-items: stretch;
+      }
+
+      .close-header {
+        flex: 0 0 44px;
+      }
+
       .view-toggle {
         width: 100%;
         min-width: 0;
@@ -666,22 +721,26 @@
   </style>
 </head>
 <body>
+  <button id="showHeader" class="show-header" type="button">상단 메뉴 열기</button>
   <header>
     <div class="topbar">
       <div class="title-row">
-        <div>
+        <div class="title-main">
           <h1>RTL 문제 풀이 노트</h1>
           <p class="subtitle">PDF 문제를 문제/답 형식으로 정리한 연습용 HTML입니다. 답안 코드는 프로젝트 RTL 규칙에 맞춰 `i*`, `o*`, `r*`, `w*` 이름을 우선 사용했습니다.</p>
         </div>
-        <div class="view-toggle" aria-label="보기 방식 선택">
-          <button id="listModeBtn" type="button">전체 목록 보기</button>
-          <button id="focusModeBtn" type="button">한 문제씩 집중</button>
+        <div class="header-controls">
+          <div class="view-toggle" aria-label="보기 방식 선택">
+            <button id="listModeBtn" type="button">전체 목록 보기</button>
+            <button id="focusModeBtn" type="button">한 문제씩 집중</button>
+          </div>
+          <button id="hideHeader" class="close-header" type="button" aria-label="상단 메뉴 닫기">×</button>
         </div>
       </div>
       <div class="toolbar">
         <input id="search" type="search" placeholder="문제 번호, 키워드, 모듈명 검색">
         <select id="sectionFilter" aria-label="섹션 필터"></select>
-        <button id="collapseAll" type="button">접기</button>
+        <button id="collapseAll" type="button">답 접기</button>
         <button id="expandAll" class="primary" type="button">전체 답 보기</button>
       </div>
       <div class="progress" aria-label="답 확인 진도"><span id="progressBar"></span></div>
@@ -719,10 +778,13 @@
     const progressBarEl = document.getElementById("progressBar");
     const listModeBtn = document.getElementById("listModeBtn");
     const focusModeBtn = document.getElementById("focusModeBtn");
+    const hideHeaderBtn = document.getElementById("hideHeader");
+    const showHeaderBtn = document.getElementById("showHeader");
 
     const opened = new Set(JSON.parse(localStorage.getItem("rtlQuizOpened") || "[]"));
     let viewMode = localStorage.getItem("rtlQuizViewMode") || "list";
     let focusIndex = Number(localStorage.getItem("rtlQuizFocusIndex") || "0");
+    let headerHidden = localStorage.getItem("rtlQuizHeaderHidden") === "true";
 
     function saveOpened() {
       localStorage.setItem("rtlQuizOpened", JSON.stringify([...opened]));
@@ -912,6 +974,7 @@
 
     function updateModeUi() {
       document.body.classList.toggle("focus-mode", viewMode === "focus");
+      document.body.classList.toggle("header-hidden", headerHidden);
       listModeBtn.classList.toggle("active", viewMode === "list");
       focusModeBtn.classList.toggle("active", viewMode === "focus");
       const isFocus = viewMode === "focus";
@@ -1182,6 +1245,16 @@
     sectionFilterEl.addEventListener("change", applyFilter);
     listModeBtn.addEventListener("click", () => setViewMode("list"));
     focusModeBtn.addEventListener("click", () => setViewMode("focus"));
+    hideHeaderBtn.addEventListener("click", () => {
+      headerHidden = true;
+      localStorage.setItem("rtlQuizHeaderHidden", "true");
+      updateModeUi();
+    });
+    showHeaderBtn.addEventListener("click", () => {
+      headerHidden = false;
+      localStorage.setItem("rtlQuizHeaderHidden", "false");
+      updateModeUi();
+    });
 
     async function init() {
       try {
