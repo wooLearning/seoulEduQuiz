@@ -64,6 +64,12 @@
       max-width: 1400px;
     }
 
+    body.focus-mode .toolbar,
+    body.focus-mode .summary,
+    body.focus-mode .notice {
+      display: none;
+    }
+
     .title-row {
       display: flex;
       align-items: center;
@@ -588,9 +594,14 @@
     }
 
     @media (max-width: 860px) {
+      header {
+        position: static;
+      }
+
       .title-row {
         align-items: flex-start;
         flex-direction: column;
+        gap: 14px;
       }
 
       .view-toggle {
@@ -602,6 +613,18 @@
       main {
         padding-left: 16px;
         padding-right: 16px;
+      }
+
+      .topbar {
+        padding-top: 18px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .subtitle {
+        font-size: 14px;
       }
 
       .toolbar {
@@ -928,6 +951,7 @@
 
     function makeQuestionCard(q) {
       const article = document.createElement("article");
+      article.dataset.id = q.id;
       article.dataset.section = q.section;
       article.dataset.search = `${q.id} ${q.section} ${q.kind} ${q.title} ${q.prompt} ${q.answer} ${q.code || ""}`.toLowerCase();
 
@@ -1135,15 +1159,23 @@
     }
 
     document.getElementById("expandAll").addEventListener("click", () => {
-      document.querySelectorAll("article:not(.hidden) details").forEach((details) => {
+      document.querySelectorAll("article:not(.hidden)").forEach((article) => {
+        opened.add(article.dataset.id);
+        const details = article.querySelector("details");
         details.open = true;
       });
+      saveOpened();
+      updateStats();
     });
 
     document.getElementById("collapseAll").addEventListener("click", () => {
-      document.querySelectorAll("article:not(.hidden) details").forEach((details) => {
+      document.querySelectorAll("article:not(.hidden)").forEach((article) => {
+        opened.delete(article.dataset.id);
+        const details = article.querySelector("details");
         details.open = false;
       });
+      saveOpened();
+      updateStats();
     });
 
     searchEl.addEventListener("input", applyFilter);
