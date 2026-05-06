@@ -756,7 +756,7 @@
     </section>
 
     <div class="notice">
-      PDF 원문에 `clk`, `rst_n(active-low)`가 지정된 문제도, 여기서는 사용자가 요청한 RTL 스타일에 맞춰 `iClk`, `iRst(active-high)` 중심으로 답안을 작성했습니다. 면접/시험에서 원문 포트명을 그대로 요구하면 이름과 리셋 극성만 맞춰 바꾸면 됩니다.
+      PDF 원문에 `clk`, `rst_n(active-low)`가 지정된 문제도, 여기서는 사용자 RTL 스타일에 맞춰 `iClk`, `iRstn(active-low)` 중심으로 답안을 작성했습니다. 면접/시험에서 원문 포트명을 그대로 요구하면 이름만 맞춰 바꾸면 됩니다.
     </div>
 
     <div id="quiz"></div>
@@ -892,7 +892,7 @@
       const editor = document.createElement("textarea");
       editor.className = "practice-editor";
       editor.spellcheck = false;
-      editor.placeholder = "`timescale 1ns / 1ps\n\nmodule ...\n  // 여기에 직접 풀이를 작성하세요\nendmodule";
+      editor.placeholder = "module ... (\n  input wire iClk,\n  input wire iRstn\n);\n  // 여기에 직접 풀이를 작성하세요\nendmodule";
       editor.value = localStorage.getItem(storageKey) || "";
       editor.setAttribute("aria-label", `${q.title} 내 풀이 입력`);
 
